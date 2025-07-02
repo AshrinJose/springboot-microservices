@@ -6,6 +6,7 @@ import com.learning.employeeservice.exception.ResourceNotFoundException;
 import com.learning.employeeservice.repository.EmployeeRepository;
 import com.learning.employeeservice.service.EmployeeService;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,10 +14,11 @@ import org.springframework.stereotype.Service;
 public class EmployeeServiceImpl implements EmployeeService {
 
     private EmployeeRepository employeeRepository;
+    private final ModelMapper modelMapper;
 
     @Override
     public EmployeeDTO saveEmployee(EmployeeDTO employeeDTO) {
-        Employee employee = new Employee(
+        /*Employee employee = new Employee(
                 employeeDTO.getId(),
                 employeeDTO.getFirstName(),
                 employeeDTO.getLastName(),
@@ -29,7 +31,15 @@ public class EmployeeServiceImpl implements EmployeeService {
                 saveEmployee.getFirstName(),
                 saveEmployee.getLastName(),
                 saveEmployee.getEmail()
-        );
+        );*/
+        /*
+        Use ModelMapper and MapStruct Mapping Libraries in EmployeeService to convert the Employee JPA entity to EmployeeDto and Vice Versa.
+         */
+        //Employee employee = modelMapper.map(employeeDTO, Employee.class);
+        Employee saveEmployee = employeeRepository.save(
+                                        modelMapper.map(employeeDTO, Employee.class)
+                                );
+        return modelMapper.map(saveEmployee, EmployeeDTO.class);
     }
 
     @Override
