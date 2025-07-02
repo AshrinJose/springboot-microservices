@@ -1,5 +1,7 @@
 package com.learning.employeeservice.service.impl;
 
+import com.learning.employeeservice.dto.APIResponseDTO;
+import com.learning.employeeservice.dto.DepartmentDTO;
 import com.learning.employeeservice.dto.EmployeeDTO;
 import com.learning.employeeservice.entity.Employee;
 import com.learning.employeeservice.exception.ResourceNotFoundException;
@@ -7,7 +9,9 @@ import com.learning.employeeservice.repository.EmployeeRepository;
 import com.learning.employeeservice.service.EmployeeService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 @AllArgsConstructor
@@ -15,6 +19,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private EmployeeRepository employeeRepository;
     private final ModelMapper modelMapper;
+    private final RestTemplate restTemplate;
 
     @Override
     public EmployeeDTO saveEmployee(EmployeeDTO employeeDTO) {
@@ -42,16 +47,28 @@ public class EmployeeServiceImpl implements EmployeeService {
         return modelMapper.map(saveEmployee, EmployeeDTO.class);
     }
 
+
     @Override
-    public EmployeeDTO getEmployeeById(Long employeeId) {
+    public APIResponseDTO getEmployeeById(Long employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID:" + employeeId));
 
-        return new EmployeeDTO(
+        EmployeeDTO employeeDTO = new EmployeeDTO(
                 employee.getId(),
                 employee.getFirstName(),
                 employee.getLastName(),
-                employee.getEmail()
+                employee.getEmail(),
+                employee.getDepartmentCode()
+        );
+
+        //Employee belongs to department and employee has a unique department code
+        //return Employee along with its department in response
+        ResponseEntity<DepartmentDTO> responseEntity = restTemplate.getForEntity("http://localhost:8080/api/departments/" + employee.getDepartmentCode(),
+                DepartmentDTO.class);
+        DepartmentDTO departmentDTO = responseEntity.getBody();
+        return new APIResponseDTO(
+                employeeDTO,
+                departmentDTO
         );
     }
 }
