@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 @AllArgsConstructor
@@ -20,6 +21,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private EmployeeRepository employeeRepository;
     private final ModelMapper modelMapper;
     private final RestTemplate restTemplate;
+    private final WebClient webClient;
 
     @Override
     public EmployeeDTO saveEmployee(EmployeeDTO employeeDTO) {
@@ -63,9 +65,18 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //Employee belongs to department and employee has a unique department code
         //return Employee along with its department in response
-        ResponseEntity<DepartmentDTO> responseEntity = restTemplate.getForEntity("http://localhost:8080/api/departments/" + employee.getDepartmentCode(),
-                DepartmentDTO.class);
-        DepartmentDTO departmentDTO = responseEntity.getBody();
+        // using RestTemplate
+        /*ResponseEntity<DepartmentDTO> responseEntity
+                        = restTemplate.getForEntity("http://localhost:8080/api/departments/" + employee.getDepartmentCode(),
+                                                DepartmentDTO.class);
+        DepartmentDTO departmentDTO = responseEntity.getBody();*/
+
+        DepartmentDTO departmentDTO = webClient.get()
+                .uri("http://localhost:8080/api/departments/" + employee.getDepartmentCode())
+                .retrieve()
+                .bodyToMono(DepartmentDTO.class)
+                .block();
+
         return new APIResponseDTO(
                 employeeDTO,
                 departmentDTO
