@@ -6,6 +6,7 @@ import com.learning.employeeservice.dto.EmployeeDTO;
 import com.learning.employeeservice.entity.Employee;
 import com.learning.employeeservice.exception.ResourceNotFoundException;
 import com.learning.employeeservice.repository.EmployeeRepository;
+import com.learning.employeeservice.service.APIClient;
 import com.learning.employeeservice.service.EmployeeService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -22,6 +23,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final ModelMapper modelMapper;
     private final RestTemplate restTemplate;
     private final WebClient webClient;
+    private final APIClient feignClient;
 
     @Override
     public EmployeeDTO saveEmployee(EmployeeDTO employeeDTO) {
@@ -52,8 +54,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public APIResponseDTO getEmployeeById(Long employeeId) {
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID:" + employeeId));
+        Employee employee = employeeRepository
+                                        .findById(employeeId)
+                                        .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID:" + employeeId));
 
         EmployeeDTO employeeDTO = new EmployeeDTO(
                 employee.getId(),
@@ -71,12 +74,15 @@ public class EmployeeServiceImpl implements EmployeeService {
                                                 DepartmentDTO.class);
         DepartmentDTO departmentDTO = responseEntity.getBody();*/
 
-        DepartmentDTO departmentDTO = webClient.get()
+        //using WebClient
+        /*DepartmentDTO departmentDTO = webClient.get()
                 .uri("http://localhost:8080/api/departments/" + employee.getDepartmentCode())
                 .retrieve()
                 .bodyToMono(DepartmentDTO.class)
-                .block();
+                .block();*/
 
+        //using FeignClient
+        DepartmentDTO departmentDTO = feignClient.getDepartment(employee.getDepartmentCode());
         return new APIResponseDTO(
                 employeeDTO,
                 departmentDTO
