@@ -21,8 +21,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private EmployeeRepository employeeRepository;
     private final ModelMapper modelMapper;
-    private final RestTemplate restTemplate;
-    private final WebClient webClient;
+    /*private final RestTemplate restTemplate;*/
+    /*private final WebClient webClient;*/
     private final APIClient feignClient;
 
     @Override
